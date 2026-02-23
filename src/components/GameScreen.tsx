@@ -69,6 +69,7 @@ export default function GameScreen({ onEnd }: Props) {
   });
   const [ballotAnim, setBallotAnim] = useState<'in' | 'out' | 'idle'>('in');
   const [locked, setLocked] = useState(false);
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
 
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const startTimeRef = useRef(Date.now());
@@ -81,6 +82,13 @@ export default function GameScreen({ onEnd }: Props) {
   const currentBallot: BallotData | undefined = ballots[currentIdx];
   const done = currentIdx >= ballots.length;
   const voter = useMemo(() => randomVoter(currentIdx), [currentIdx]);
+
+  // Mobile detection
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handler);
+    return () => window.removeEventListener('resize', handler);
+  }, []);
 
   // Timer countdown
   useEffect(() => {
@@ -166,16 +174,24 @@ export default function GameScreen({ onEnd }: Props) {
 
   const accuracy = stats.totalSeen > 0 ? Math.round((stats.correct / stats.totalSeen) * 100) : 0;
 
+  const statsItems = [
+    { label: 'SCORE',    value: String(stats.score),    color: '#d4b030' },
+    { label: 'CORRECT',  value: String(stats.correct),  color: '#2a9a2a' },
+    { label: 'WRONG',    value: String(stats.incorrect), color: '#ee4444' },
+    { label: 'ACC.',     value: `${accuracy}%`,         color: '#c8b89a' },
+  ];
+
+  const btnDisabled = locked || done || timeLeft === 0;
+
   return (
     <div className="h-screen w-screen desk-surface flex flex-col overflow-hidden relative">
       <div className="scanlines" />
 
-      {/* ── Top bar ── */}
+      {/* ── Desktop Top bar ── */}
       <div
-        className="flex items-center justify-between px-5 py-3 shrink-0"
+        className="hidden md:flex items-center justify-between px-5 py-3 shrink-0"
         style={{ background: 'rgba(15,8,5,0.97)', borderBottom: '1px solid rgba(184,150,12,0.25)' }}
       >
-        {/* Brand */}
         <div className="flex items-center gap-3">
           <GiStamper size={22} style={{ color: '#b8960c' }} />
           <div>
@@ -188,26 +204,19 @@ export default function GameScreen({ onEnd }: Props) {
           </div>
         </div>
 
-        {/* Timer */}
         <div style={{ minWidth: 160 }}>
           <Timer timeLeft={timeLeft} totalTime={INITIAL_TIME} />
         </div>
 
-        {/* Stats */}
         <div className="flex items-center gap-5">
-          {[
-            { label: 'SCORE',   value: String(stats.score),    color: '#d4b030' },
-            { label: 'CORRECT', value: String(stats.correct),  color: '#2a9a2a' },
-            { label: 'WRONG',   value: String(stats.incorrect),color: '#ee4444' },
-            { label: 'ACC.',    value: `${accuracy}%`,         color: '#c8b89a' },
-          ].map(({ label, value, color }) => (
+          {statsItems.map(({ label, value, color }) => (
             <div key={label} className="text-center">
               <p className="font-typewriter" style={{ color: '#5a4a3a', fontSize: '0.65rem', letterSpacing: '0.08em' }}>{label}</p>
               <p className="font-mono font-bold" style={{ color, fontSize: '1.25rem', lineHeight: 1 }}>{value}</p>
             </div>
           ))}
-          <div className="flex items-center gap-1" style={{ color: '#5a4a3a' }}>
-            <FiFileText size={14} />
+          <div className="flex items-center gap-1">
+            <FiFileText size={14} style={{ color: '#5a4a3a' }} />
             <span className="font-typewriter" style={{ fontSize: '0.8rem', color: '#7a6a5a' }}>
               {Math.min(currentIdx + 1, ballots.length)}/{ballots.length}
             </span>
@@ -215,11 +224,81 @@ export default function GameScreen({ onEnd }: Props) {
         </div>
       </div>
 
-      {/* ── Main content ── */}
-      <div className="flex flex-1 overflow-hidden gap-4 p-4">
+      {/* ── Mobile Top bar ── */}
+      <div
+        className="flex md:hidden flex-col shrink-0"
+        style={{ background: 'rgba(15,8,5,0.97)', borderBottom: '1px solid rgba(184,150,12,0.25)' }}
+      >
+        {/* Row 1: brand | timer | count */}
+        <div className="flex items-center justify-between px-3 pt-2 pb-1 gap-2">
+          <div className="flex items-center gap-1.5 shrink-0">
+            <GiStamper size={15} style={{ color: '#b8960c' }} />
+            <p className="font-typewriter tracking-widest uppercase" style={{ color: '#b8960c', fontSize: '0.58rem' }}>
+              Ballot Inspector
+            </p>
+          </div>
+          <div style={{ minWidth: 110 }}>
+            <Timer timeLeft={timeLeft} totalTime={INITIAL_TIME} />
+          </div>
+          <div className="flex items-center gap-1 shrink-0">
+            <FiFileText size={11} style={{ color: '#5a4a3a' }} />
+            <span className="font-typewriter" style={{ fontSize: '0.66rem', color: '#7a6a5a' }}>
+              {Math.min(currentIdx + 1, ballots.length)}/{ballots.length}
+            </span>
+          </div>
+        </div>
+        {/* Row 2: stats */}
+        <div className="flex items-center justify-center gap-5 px-3 pb-2">
+          {statsItems.map(({ label, value, color }) => (
+            <div key={label} className="text-center">
+              <p className="font-typewriter" style={{ color: '#5a4a3a', fontSize: '0.46rem', letterSpacing: '0.05em' }}>{label}</p>
+              <p className="font-mono font-bold" style={{ color, fontSize: '0.88rem', lineHeight: 1 }}>{value}</p>
+            </div>
+          ))}
+        </div>
+      </div>
 
-        {/* Left sidebar — fills full height */}
-        <div className="shrink-0 flex flex-col gap-3" style={{ width: 260 }}>
+      {/* ── Mobile Voter Strip ── */}
+      <div
+        className="flex md:hidden shrink-0 items-center gap-3 px-3 py-2"
+        style={{ background: 'rgba(20,12,5,0.95)', borderBottom: '1px solid rgba(184,150,12,0.15)' }}
+      >
+        <div
+          style={{
+            fontSize: '1.85rem', lineHeight: 1,
+            filter: 'grayscale(1) brightness(0.72) contrast(1.1)',
+            userSelect: 'none', flexShrink: 0,
+          }}
+        >
+          {voter.face}
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="font-typewriter font-bold truncate" style={{ color: '#d4c8b0', fontSize: '0.66rem' }}>
+            {voter.name}
+          </p>
+          <p className="font-typewriter" style={{ color: '#5a4a3a', fontSize: '0.54rem' }}>
+            Age {voter.age} · {voter.district}
+          </p>
+        </div>
+        <div
+          className="rounded px-2 py-1 shrink-0"
+          style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.04)' }}
+        >
+          <p className="font-mono" style={{ color: '#4a3a28', fontSize: '0.5rem', letterSpacing: '0.08em' }}>
+            {voter.voterId}
+          </p>
+        </div>
+        <div className="flex items-center gap-0.5 shrink-0">
+          <FiUser size={9} style={{ color: '#5a4a3a' }} />
+          <span className="font-typewriter" style={{ color: '#5a4a3a', fontSize: '0.5rem' }}>VOTER</span>
+        </div>
+      </div>
+
+      {/* ── Main content ── */}
+      <div className="flex flex-1 overflow-hidden md:gap-4 md:p-4">
+
+        {/* Left sidebar — desktop only */}
+        <div className="hidden md:flex shrink-0 flex-col gap-3" style={{ width: 260 }}>
           <RulesReference />
 
           {/* Ballot progress tracker */}
@@ -250,15 +329,15 @@ export default function GameScreen({ onEnd }: Props) {
         </div>
 
         {/* Center — ballot */}
-        <div className="flex-1 flex flex-col items-center justify-center relative overflow-y-auto">
+        <div className="flex-1 flex flex-col items-center overflow-y-auto overflow-x-hidden py-2 md:py-0 md:justify-center">
           {currentBallot && !gameEndedRef.current && (
             <div
-              className={
+              className={`w-full px-2 md:px-0 ${
                 ballotAnim === 'in' ? 'animate-slideIn' : ballotAnim === 'out' ? 'animate-slideOut' : ''
-              }
-              style={{ position: 'relative' }}
+              }`}
+              style={{ position: 'relative', maxWidth: 460 }}
             >
-              <BallotDisplay ballot={currentBallot} />
+              <BallotDisplay ballot={currentBallot} compact={isMobile} />
               <FeedbackOverlay
                 show={feedback.show}
                 correct={feedback.correct}
@@ -268,15 +347,15 @@ export default function GameScreen({ onEnd }: Props) {
             </div>
           )}
 
-          <p className="font-typewriter mt-3" style={{ color: '#4a3a28', fontSize: '0.72rem', letterSpacing: '0.12em' }}>
+          <p className="hidden md:block font-typewriter mt-3" style={{ color: '#4a3a28', fontSize: '0.72rem', letterSpacing: '0.12em' }}>
             Press [V] for VALID · [I] for INVALID
           </p>
         </div>
 
-        {/* Right sidebar — voter card + stamp buttons */}
-        <div className="shrink-0 flex flex-col items-center gap-4" style={{ width: 200 }}>
+        {/* Right sidebar — desktop only */}
+        <div className="hidden md:flex shrink-0 flex-col items-center gap-4" style={{ width: 200 }}>
 
-          {/* ── Voter ID card ── */}
+          {/* Voter ID card */}
           <div
             className="w-full rounded"
             style={{
@@ -286,7 +365,6 @@ export default function GameScreen({ onEnd }: Props) {
               overflow: 'hidden',
             }}
           >
-            {/* Card header */}
             <div
               className="flex items-center gap-1.5 px-3 py-1.5"
               style={{ background: 'rgba(184,150,12,0.1)', borderBottom: '1px solid rgba(184,150,12,0.2)' }}
@@ -297,9 +375,7 @@ export default function GameScreen({ onEnd }: Props) {
               </span>
             </div>
 
-            {/* Face + details */}
             <div className="flex flex-col items-center gap-2 px-3 py-3 mt-5">
-              {/* Face */}
               <div
                 style={{
                   fontSize: '3.8rem',
@@ -311,7 +387,6 @@ export default function GameScreen({ onEnd }: Props) {
                 {voter.face}
               </div>
 
-              {/* Name */}
               <div className="text-center w-full">
                 <p
                   className="font-typewriter font-bold leading-tight"
@@ -324,7 +399,6 @@ export default function GameScreen({ onEnd }: Props) {
                 </p>
               </div>
 
-              {/* Voter ID */}
               <div
                 className="w-full text-center rounded px-2 py-1"
                 style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.04)' }}
@@ -336,7 +410,6 @@ export default function GameScreen({ onEnd }: Props) {
             </div>
           </div>
 
-          {/* ── YOUR VERDICT label ── */}
           <p className="font-typewriter" style={{ color: '#5a4a3a', fontSize: '0.72rem', letterSpacing: '0.12em' }}>
             YOUR VERDICT
           </p>
@@ -345,8 +418,8 @@ export default function GameScreen({ onEnd }: Props) {
           <button
             className="stamp-btn-valid rounded w-full flex flex-col items-center gap-3 py-7 px-3"
             onClick={() => decide('valid')}
-            disabled={locked || done || timeLeft === 0}
-            style={{ opacity: locked ? 0.45 : 1, cursor: locked ? 'not-allowed' : 'pointer' }}
+            disabled={btnDisabled}
+            style={{ opacity: btnDisabled ? 0.45 : 1, cursor: btnDisabled ? 'not-allowed' : 'pointer' }}
           >
             <FiCheckCircle size={44} />
             <span style={{ fontSize: '1.4rem', letterSpacing: '0.22em' }}>VALID</span>
@@ -362,8 +435,8 @@ export default function GameScreen({ onEnd }: Props) {
           <button
             className="stamp-btn-invalid rounded w-full flex flex-col items-center gap-3 py-7 px-3"
             onClick={() => decide('invalid')}
-            disabled={locked || done || timeLeft === 0}
-            style={{ opacity: locked ? 0.45 : 1, cursor: locked ? 'not-allowed' : 'pointer' }}
+            disabled={btnDisabled}
+            style={{ opacity: btnDisabled ? 0.45 : 1, cursor: btnDisabled ? 'not-allowed' : 'pointer' }}
           >
             <FiXCircle size={44} />
             <span style={{ fontSize: '1.4rem', letterSpacing: '0.22em' }}>INVALID</span>
@@ -380,6 +453,44 @@ export default function GameScreen({ onEnd }: Props) {
             </p>
           </div>
         </div>
+      </div>
+
+      {/* ── Mobile verdict buttons ── */}
+      <div
+        className="flex md:hidden shrink-0"
+        style={{ borderTop: '1px solid rgba(184,150,12,0.18)', background: 'rgba(10,5,2,0.97)' }}
+      >
+        <button
+          className="flex-1 flex flex-col items-center gap-1 py-3 font-typewriter font-bold tracking-widest uppercase select-none transition-all duration-150 active:scale-95"
+          onClick={() => decide('valid')}
+          disabled={btnDisabled}
+          style={{
+            color: '#22cc44',
+            background: btnDisabled ? 'rgba(34,204,68,0.03)' : 'rgba(34,204,68,0.08)',
+            borderRight: '1px solid rgba(255,255,255,0.08)',
+            opacity: btnDisabled ? 0.45 : 1,
+            cursor: btnDisabled ? 'not-allowed' : 'pointer',
+          }}
+        >
+          <FiCheckCircle size={26} />
+          <span style={{ fontSize: '0.9rem', letterSpacing: '0.2em' }}>VALID</span>
+          <span style={{ fontSize: '0.56rem', fontFamily: "'Noto Sans Devanagari', serif", opacity: 0.7 }}>मान्य मतपत्र</span>
+        </button>
+        <button
+          className="flex-1 flex flex-col items-center gap-1 py-3 font-typewriter font-bold tracking-widest uppercase select-none transition-all duration-150 active:scale-95"
+          onClick={() => decide('invalid')}
+          disabled={btnDisabled}
+          style={{
+            color: '#ee3333',
+            background: btnDisabled ? 'rgba(238,51,51,0.03)' : 'rgba(238,51,51,0.08)',
+            opacity: btnDisabled ? 0.45 : 1,
+            cursor: btnDisabled ? 'not-allowed' : 'pointer',
+          }}
+        >
+          <FiXCircle size={26} />
+          <span style={{ fontSize: '0.9rem', letterSpacing: '0.2em' }}>INVALID</span>
+          <span style={{ fontSize: '0.56rem', fontFamily: "'Noto Sans Devanagari', serif", opacity: 0.7 }}>अमान्य मतपत्र</span>
+        </button>
       </div>
 
       {/* ── Bottom status bar — wrong decision counter ── */}
@@ -417,15 +528,14 @@ export default function GameScreen({ onEnd }: Props) {
         )}
       </div>
 
-      {/* Creator credit — bottom-right corner */}
+      {/* Creator credit — desktop only, bottom-right corner */}
       <a
         href="https://www.animeshbasnet.com.np/"
         target="_blank"
         rel="noopener noreferrer"
-        className="absolute bottom-3 right-4 group flex items-center gap-2"
+        className="hidden md:flex absolute bottom-3 right-4 group items-center gap-2"
         style={{ zIndex: 50 }}
       >
-        {/* Label — slides in on hover */}
         <span
           className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap"
           style={{ color: '#b8960c', fontSize: '0.78rem' }}
@@ -436,7 +546,7 @@ export default function GameScreen({ onEnd }: Props) {
           src="https://github.com/crypticsy.png"
           alt="Crypticsy"
           className="rounded-full transition-opacity duration-200 opacity-70 group-hover:opacity-100"
-          style={{ width: 42, height: 42, border: '2px solid rgba(184,150,12,0.0)', }}
+          style={{ width: 42, height: 42, border: '2px solid rgba(184,150,12,0.0)' }}
           onMouseEnter={e => (e.currentTarget.style.borderColor = 'rgba(184,150,12,0.6)')}
           onMouseLeave={e => (e.currentTarget.style.borderColor = 'rgba(184,150,12,0.0)')}
         />

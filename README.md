@@ -1,7 +1,7 @@
 # मतपत्र परीक्षक — Ballot Inspector
 
 ### Overview
-<p style="text-align: justify;"> Ballot Inspector is a Papers Please-inspired browser game set inside the Election Commission of Nepal. Your job: examine each Proportional Representation ballot that comes across your desk and decide in real time, whether it is <strong>valid</strong> or <strong>invalid</strong> before the clock runs out. </p>
+<p style="text-align: justify;"> Ballot Inspector is a <a link="https://papersplea.se/" href="_blank">Papers Please</a> -inspired browser game set inside the Election Commission of Nepal. Your job: examine each Proportional Representation ballot that comes across your desk and decide in real time, whether it is <strong>valid</strong> or <strong>invalid</strong> before the clock runs out. </p>
 
 <br/>
 

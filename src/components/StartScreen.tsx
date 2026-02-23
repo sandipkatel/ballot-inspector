@@ -8,7 +8,7 @@ interface Props {
 export default function StartScreen({ onStart }: Props) {
   return (
     <div
-      className="h-screen w-full max-w-full desk-surface flex items-center justify-center relative overflow-hidden"
+      className="min-h-screen md:h-screen w-full max-w-full desk-surface flex flex-col items-center justify-center relative overflow-y-auto md:overflow-hidden"
     >
       <div className="scanlines" />
 
@@ -18,7 +18,7 @@ export default function StartScreen({ onStart }: Props) {
         style={{ background: 'linear-gradient(90deg, transparent, rgba(184,150,12,0.3), transparent)' }}
       />
 
-      <div className="flex gap-6 items-start max-w-4xl w-full px-6">
+      <div className="flex flex-col md:flex-row gap-6 items-start max-w-4xl w-full px-6 md:px-6 py-16 md:py-0">
         {/* LEFT: Main title panel */}
         <div
           className="flex-1 rounded p-6"
@@ -47,13 +47,13 @@ export default function StartScreen({ onStart }: Props) {
           {/* Title */}
           <div className="mb-5">
             <h1
-              className="font-typewriter text-3xl font-bold tracking-widest uppercase"
+              className="font-typewriter text-2xl md:text-3xl font-bold tracking-widest uppercase"
               style={{ color: '#f4edd8', lineHeight: 1.1, marginBottom: 4 }}
             >
               BALLOT
             </h1>
             <h1
-              className="font-typewriter text-3xl font-bold tracking-widest uppercase"
+              className="font-typewriter text-2xl md:text-3xl font-bold tracking-widest uppercase"
               style={{ color: '#f4edd8', lineHeight: 1.1, marginBottom: 4 }}
             >
               INSPECTOR
@@ -137,12 +137,10 @@ export default function StartScreen({ onStart }: Props) {
 
         {/* RIGHT: Rules quick-ref */}
         <div
-          className="rounded p-5"
+          className="rounded p-5 w-full md:w-[260px] md:flex-shrink-0"
           style={{
-            width: 260,
             background: 'rgba(26, 18, 8, 0.95)',
             border: '1px solid rgba(184, 150, 12, 0.2)',
-            flexShrink: 0,
           }}
         >
           <p className="font-typewriter tracking-widest uppercase mb-4" style={{ color: '#b8960c', fontSize: '0.78rem' }}>
@@ -202,7 +200,7 @@ export default function StartScreen({ onStart }: Props) {
       </div>
 
       {/* Footer */}
-      <div className="absolute bottom-8 left-0 right-0 flex justify-center">
+      <div className="relative mt-4 md:mt-0 md:absolute md:bottom-8 left-0 right-0 flex justify-center pb-4 md:pb-0">
         <p
           className="text-sm flex flex-wrap items-center justify-center gap-1.5"
         >

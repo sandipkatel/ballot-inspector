@@ -9,12 +9,12 @@ const VALID_RULES = [
 ];
 
 const INVALID_RULES: { label: string; desc: string }[] = [
-  { label: 'MULTIPLE MARKS',    desc: 'Two or more cells are marked' },
-  { label: 'BLANK BALLOT',      desc: 'No mark made anywhere on the ballot' },
-  { label: 'BORDER MARK',       desc: 'Mark falls between two cells — intent unclear' },
-  { label: 'IDENTIFYING MARKS', desc: 'Name, signature, or other writing on ballot' },
-  { label: 'NO SIGNATURE',      desc: 'Election officer signature is missing' },
-  { label: 'TORN / DAMAGED',    desc: 'Physical damage makes intent unreadable' },
+  { label: 'Multiple Marks',    desc: 'Two or more cells are marked' },
+  { label: 'Blank Ballot',      desc: 'No mark made anywhere on the ballot' },
+  { label: 'Border Mark',       desc: 'Mark falls between two cells — intent unclear' },
+  { label: 'Identifying Marks', desc: 'Name, signature, or other writing on ballot' },
+  { label: 'No Signature',      desc: 'Election officer signature is missing' },
+  { label: 'Torn / Damaged',    desc: 'Physical damage makes intent unreadable' },
 ];
 
 export default function RulesReference() {
@@ -66,7 +66,7 @@ export default function RulesReference() {
           <ul className="space-y-2">
             {INVALID_RULES.map((r, i) => (
               <li key={i} style={{ fontSize: '0.72rem', lineHeight: 1.45 }}>
-                <span className="font-bold" style={{ color: '#ee4444' }}>{r.label}</span>
+                <span className="font-bold capitalize" style={{ color: '#ee4444' }}>{r.label}</span>
                 <br />
                 <span style={{ color: '#8a6868', fontSize: '0.67rem' }}>{r.desc}</span>
               </li>
